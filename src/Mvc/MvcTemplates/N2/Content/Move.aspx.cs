@@ -77,9 +77,14 @@ namespace N2.Edit
 			EnsureAuthorization(Permission.Write);
 			EnsureAuthorization(toMove, toMove.IsPublished() ? Permission.Publish : Permission.Write);
 
+			var previousParent = toMove.Parent;
+
 			Engine.Persister.Move(toMove, Selection.SelectedItem);
 
-			Response.Redirect(Selection.SelectedUrl("{ManagementUrl}/Content/LinkTracker/UpdateReferences.aspx", toMove));
+			if (toMove.IsPage)
+				Response.Redirect(Selection.SelectedUrl("{ManagementUrl}/Content/LinkTracker/UpdateReferences.aspx", toMove).ToUrl().AppendQuery("previousParent", previousParent != null ? previousParent.Path : null).AppendQuery("previousName", toMove.Name));
+			else
+				Refresh(toMove);
 		}
 
 		private void LoadDefaultsAndInfo(ContentItem moved, ContentItem destination)

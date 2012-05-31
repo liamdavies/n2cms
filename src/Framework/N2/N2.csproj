@@ -136,6 +136,7 @@
     <Compile Include="Collections\TypeFilter.cs" />
     <Compile Include="Collections\ZoneFilter.cs" />
     <Compile Include="Configuration\ChildrenElement.cs" />
+    <Compile Include="Configuration\LinkTrackerElement.cs" />
     <Compile Include="Configuration\PathsElement.cs" />
     <Compile Include="Configuration\ContentConfigurationSectionBase.cs" />
     <Compile Include="Configuration\FilesElement.cs" />
@@ -149,6 +150,9 @@
     <Compile Include="Configuration\VppElement.cs" />
     <Compile Include="Configuration\ZipVppElement.cs" />
     <Compile Include="Configuration\ZipVppCollection.cs" />
+    <Compile Include="Edit\Workflow\CommandCreatedEventArgs.cs" />
+    <Compile Include="Edit\Workflow\CommandProcessEventArgs.cs" />
+    <Compile Include="Edit\Workflow\Commands\UpdateReferencesCommand.cs" />
     <Compile Include="Persistence\Behaviors\IAddingBehavior.cs" />
     <Compile Include="Persistence\Behaviors\IBehavior.cs" />
     <Compile Include="Persistence\Behaviors\IDeletingBehavior.cs" />
