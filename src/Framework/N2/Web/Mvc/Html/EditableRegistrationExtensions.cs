@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using N2.Definitions.Runtime;
 using N2.Details;
 using N2.Integrity;
 using N2.Definitions;
+using System.Web.UI.WebControls;
 
 namespace N2.Web.Mvc.Html
 {
@@ -66,6 +69,36 @@ namespace N2.Web.Mvc.Html
 			}
 		}
 
+		public static EditableBuilder<EditableMultipleItemSelectionAttribute> MultipleItemSelection(this IContentRegistration registration, string name, Type linkedType, Type excludedType = null)
+		{
+			return registration.RegisterEditable<EditableMultipleItemSelectionAttribute>(new EditableMultipleItemSelectionAttribute
+			{
+				LinkedType = linkedType,
+				ExcludedType = excludedType ?? typeof(ISystemNode),
+				Title = name,
+				Name = name
+			});
+		}
+
+		public static EditableBuilder<EditableMultipleItemSelectionAttribute> MultipleItemSelection(this IContentRegistration registration, string name, Func<IEnumerable<ContentItem>> getContentItems)
+		{
+			return registration.RegisterEditable<EditableMultipleItemSelectionAttribute>(new CustomMultipleItemSelection
+			{
+				Title = name,
+				Name = name,
+				CustomItemsGetter = () => getContentItems().Select(ci => new ListItem(ci.Title, ci.ID.ToString()))
+			});
+		}
+
+		class CustomMultipleItemSelection : EditableMultipleItemSelectionAttribute
+		{
+			protected override ListItem[] GetListItems()
+			{
+				return CustomItemsGetter().ToArray();
+			}
+
+			public Func<IEnumerable<ListItem>> CustomItemsGetter { get; set; }
+		}
 
 		public static EditableBuilder<EditableFileUploadAttribute> FileUpload(this IContentRegistration registration, string name, string title = null)
 		{
@@ -141,7 +174,7 @@ namespace N2.Web.Mvc.Html
 		public static EditableBuilder<EditableSummaryAttribute> Summary(this IContentRegistration registration, string name, string title = null, string source = null)
 		{
 			return registration.RegisterEditable<EditableSummaryAttribute>(name, title)
-				.Configure(e => e.Source = source );
+				.Configure(e => e.Source = source);
 		}
 
 		public static Builder<RestrictParentsAttribute> RestrictParents(this IContentRegistration registration, AllowedTypes allowedTypes)

@@ -10,7 +10,6 @@ using N2.Edit;
 using N2.Engine;
 using N2.Persistence;
 using N2.Web.Parts;
-using log4net;
 
 namespace N2.Web.UI.WebControls
 {
@@ -18,7 +17,7 @@ namespace N2.Web.UI.WebControls
 	{
 		#region Fields
 
-		private readonly ILog logger = LogManager.GetLogger(typeof(ItemEditorList));
+		private readonly Engine.Logger<ItemEditorList> logger;
 		private readonly List<ItemEditor> itemEditors = new List<ItemEditor>();
 		private readonly Panel addPanel = new Panel { CssClass = "addArea" };
 		private List<string> addedDefinitions = new List<string>();
@@ -161,15 +160,17 @@ namespace N2.Web.UI.WebControls
 
 		protected override void CreateChildControls()
 		{
+			if (!string.IsNullOrEmpty(Label))
+			{
+				Controls.AddAt(0, new Label { Text = Label, CssClass = "editorLabel" });
+			}
+
 			foreach (ContentItem item in GetItems())
 			{
 				CreateItemEditor(item);
 			}
 
-			if (!string.IsNullOrEmpty(Label))
-			{
-				addPanel.Controls.Add(new Label { Text = Label, CssClass = "editorLabel" });
-			}
+			addPanel.Controls.Add(new Label { Text = Utility.GetLocalResourceString("Add") ?? "Add", CssClass = "addLabel" });
 
 			foreach (ItemDefinition definition in Parts.GetAllowedDefinitions(ParentItem, ZoneName, Page.User))
 			{

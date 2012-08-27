@@ -6,14 +6,13 @@ using N2.Plugin;
 using N2.Web;
 using System.Web.Configuration;
 using System.Configuration;
-using log4net;
 
 namespace N2.Edit.Installation
 {
 	[Service]
 	public class InstallationChecker : IAutoStart
 	{
-		private readonly ILog logger = LogManager.GetLogger(typeof (InstallationChecker));
+		private readonly Engine.Logger<InstallationChecker> logger;
 		IWebContext webContext;
 		EventBroker broker;
 		protected bool checkInstallation;
@@ -62,7 +61,7 @@ namespace N2.Edit.Installation
 			}
 			catch (Exception ex)
 			{
-				Trace.TraceWarning(ex.ToString());
+				Engine.Logger.Warn(ex);
 			}
 
 			if (status == null)
@@ -73,7 +72,7 @@ namespace N2.Edit.Installation
 			Url redirectUrl = Url.ResolveTokens(welcomeUrl);
 			if (status == null)
 			{
-				Trace.TraceWarning("Null status");
+				Engine.Logger.Warn("Null status");
 				installer.UpdateStatus(SystemStatusLevel.Unknown);
 				return;
 			}

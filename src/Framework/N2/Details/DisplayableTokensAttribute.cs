@@ -9,17 +9,18 @@ using System.Diagnostics;
 using System.Web.Routing;
 using System.Web;
 using N2.Web.Mvc;
-using log4net;
 using N2.Web;
+using System;
 
 namespace N2.Details
 {
+	[AttributeUsage(AttributeTargets.Property)]
 	public class DisplayableTokensAttribute : AbstractDisplayableAttribute, IContentTransformer
 	{
 		/// <summary>String that suffixes the detail name when tokens are stored in the detail collection.</summary>
 		public const string CollectionSuffix = "_Tokens";
 
-		private readonly ILog logger = LogManager.GetLogger(typeof (DisplayableTokensAttribute));
+		private readonly Engine.Logger<DisplayableTokensAttribute> logger;
 
 		public override Control AddTo(ContentItem item, string detailName, Control container)
 		{

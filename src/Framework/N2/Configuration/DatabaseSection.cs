@@ -32,11 +32,19 @@ namespace N2.Configuration
 		/// NHibernate.Cache.NoCacheProvider, NHibernate
 		/// NHibernate.Caches.SysCache2.SysCacheProvider,NHibernate.Caches.SysCache2
 		/// </remarks>
-		[ConfigurationProperty("cacheProviderClass", DefaultValue = "NHibernate.Cache.NoCacheProvider, NHibernate")]
+		[ConfigurationProperty("cacheProviderClass", DefaultValue = "NHibernate.Caches.SysCache2.SysCacheProvider, N2")]
 		public string CacheProviderClass
 		{
 			get { return (string)base["cacheProviderClass"]; }
 			set { base["cacheProviderClass"] = value; }
+		}
+
+		/// <summary>The cache region name to use.</summary>
+		[ConfigurationProperty("cacheRegion", DefaultValue = "N2CMS")]
+		public string CacheRegion
+		{
+			get { return (string)base["cacheRegion"]; }
+			set { base["cacheRegion"] = value; }
 		}
 
 		/// <summary>The name of the sql dependency to use for cache invalidation.</summary>
@@ -140,7 +148,8 @@ namespace N2.Configuration
 		{
 			if (Files.StorageLocation == FileStoreLocation.Database)
 				configurationKeys.Add("dbfs");
-			if (Search.Enabled)
+
+			if (Search.Type == SearchIndexType.Lucene)
 				configurationKeys.Add("lucene");
 		}
 	}

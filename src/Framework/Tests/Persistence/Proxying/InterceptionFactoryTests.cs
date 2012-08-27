@@ -1,10 +1,12 @@
 ﻿using System.Web.UI.WebControls;
+using System.Linq;
 using N2.Details;
 using N2.Persistence;
 using N2.Persistence.Proxying;
 using NUnit.Framework;
 using System.Collections.Generic;
 using Shouldly;
+using N2.Definitions.Static;
 
 namespace N2.Tests.Persistence.Proxying
 {
@@ -25,6 +27,9 @@ namespace N2.Tests.Persistence.Proxying
 
 		[EditableFreeTextArea("My String", 100, PersistAs = PropertyPersistenceLocation.DetailCollection)]
 		public virtual IEnumerable<ContentItem> LinkCollectionProperty { get; set; }
+
+		[EditableFreeTextArea("My String", 100, PersistAs = PropertyPersistenceLocation.DetailCollection)]
+		public virtual IEnumerable<InterceptableItem> TypedCollectionProperty { get; set; }
 
 		[EditableFreeTextArea("My Numbers", 100, PersistAs = PropertyPersistenceLocation.DetailCollection)]
 		public virtual int[] IntCollectionProperty { get; set; }
@@ -62,7 +67,8 @@ namespace N2.Tests.Persistence.Proxying
 		public void TestFixtureSetUp()
 		{
 			factory = new InterceptingProxyFactory();
-			factory.Initialize(new[] { typeof(InterceptableItem), typeof(InterceptableInheritorItem), typeof(IgnoringItem) });
+			var map = new DefinitionMap();
+			factory.Initialize(new[] { typeof(InterceptableItem), typeof(InterceptableInheritorItem), typeof(IgnoringItem) }.Select(t => map.GetOrCreateDefinition(t)));
 		}
 
 		[SetUp]
@@ -290,11 +296,27 @@ namespace N2.Tests.Persistence.Proxying
 		}
 
 		[Test]
+		public void Setting_LinkCollectionProperty_AssignesTo_DetailCollection_typed()
+		{
+			var values = new InterceptableItem[] { new InterceptableItem { ID = 1 }, new InterceptableItem { ID = 2 } };
+			item.TypedCollectionProperty = values;
+			Assert.That(item.GetDetailCollection("TypedCollectionProperty", false), Is.EquivalentTo(values));
+		}
+
+		[Test]
 		public void Getting_LinkCollectionProperty_ReadsFrom_DetailCollection()
 		{
 			var values = new ContentItem[] { new InterceptableItem { ID = 1 }, new InterceptableItem { ID = 2 } };
 			item.GetDetailCollection("LinkCollectionProperty", true).AddRange(values);
 			item.LinkCollectionProperty.ShouldBe(values);
+		}
+
+		[Test]
+		public void Getting_LinkCollectionProperty_ReadsFrom_DetailCollection_typed()
+		{
+			var values = new InterceptableItem[] { new InterceptableItem { ID = 1 }, new InterceptableItem { ID = 2 } };
+			item.GetDetailCollection("TypedCollectionProperty", true).AddRange(values);
+			item.TypedCollectionProperty.ShouldBe(values);
 		}
 
 		// STANDARD
@@ -417,6 +439,12 @@ namespace N2.Tests.Persistence.Proxying
 			bool wasChanged = factory.OnSaving(interceptable);
 
 			Assert.That(wasChanged, Is.False);
+		}
+
+		[Test]
+		public void Attributes_are_retieved_via_definition()
+		{
+
 		}
 
 		//// Copy

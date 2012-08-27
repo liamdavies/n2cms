@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using N2.Plugin;
-using log4net;
 
 namespace N2.Engine.MediumTrust
 {
@@ -13,7 +12,7 @@ namespace N2.Engine.MediumTrust
 	{
 		bool isInitialized = false;
 
-		private readonly ILog logger = LogManager.GetLogger(typeof (MediumTrustServiceContainer));
+		private readonly Engine.Logger<MediumTrustServiceContainer> logger;
 		private readonly IDictionary<Type, Type> waitingList = new Dictionary<Type, Type>();
 		private readonly IDictionary<Type, object> container = new Dictionary<Type, object>();
 		private readonly IDictionary<Type, Func<Type, object>> resolvers = new Dictionary<Type, Func<Type, object>>();
@@ -86,16 +85,18 @@ namespace N2.Engine.MediumTrust
 		/// <summary>Resolves all services serving the given interface.</summary>
 		/// <param name="serviceType">The type of service to resolve.</param>
 		/// <returns>All services registered to serve the provided interface.</returns>
-		public override Array ResolveAll(Type serviceType)
+		public override IEnumerable<object> ResolveAll(Type serviceType)
 		{
 			Func<Type, IEnumerable<object>> listResolver;
 			if (!listResolvers.TryGetValue(serviceType, out listResolver))
-				return Activator.CreateInstance(serviceType.MakeArrayType(), 0) as Array;
+				//return Activator.CreateInstance(serviceType.MakeArrayType(), 0) as Array;
+				return new object[0];
 			
-			var instances = listResolver(serviceType).ToList().ToArray();
-			var returnArray = Activator.CreateInstance(serviceType.MakeArrayType(), instances.Length) as Array;
-			Array.Copy(instances, returnArray, instances.Length);
-			return returnArray;
+			return listResolver(serviceType);
+			//var instances = listResolver(serviceType).ToList().ToArray();
+			//var returnArray = Activator.CreateInstance(serviceType.MakeArrayType(), instances.Length) as Array;
+			//Array.Copy(instances, returnArray, instances.Length);
+			//return returnArray;
 		}
 
 		/// <summary>Resolves all services.</summary>
@@ -109,9 +110,9 @@ namespace N2.Engine.MediumTrust
 		/// <summary>Resolves all services of the given type.</summary>
 		/// <typeparam name="T">The type of service to resolve.</typeparam>
 		/// <returns>All services registered to serve the provided interface.</returns>
-		public override T[] ResolveAll<T>()
+		public override IEnumerable<T> ResolveAll<T>()
 		{
-			return ResolveAll(typeof(T)).Cast<T>().ToArray();
+			return ResolveAll(typeof(T)).Cast<T>();
 		}
 
 		public override void Release(object instance)
@@ -297,7 +298,12 @@ namespace N2.Engine.MediumTrust
 			{
 				var parameterType = parameterInfos[i].ParameterType;
 				if(parameterType.IsArray)
-					parameters[i] = ResolveAll(parameterType.GetElementType());
+				{
+					var instancesArray = ResolveAll(parameterType.GetElementType()).ToArray();
+					var injectedArray = Activator.CreateInstance(parameterType, instancesArray.Length) as Array;
+					Array.Copy(instancesArray, injectedArray, instancesArray.Length);
+					parameters[i] = injectedArray;
+				}
 				else
 					parameters[i] = Resolve(parameterType);
 			}
